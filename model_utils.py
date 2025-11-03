@@ -1,3 +1,5 @@
+import os
+import requests
 import pandas as pd
 import numpy as np
 import joblib
@@ -5,7 +7,28 @@ import pickle
 import traceback
 
 # =========================
-# Load model and encoders once (fast!)
+# ✅ Auto-download model from Google Drive if missing
+# =========================
+MODEL_URL = "https://drive.google.com/uc?export=download&id=1f36mIPClEjNGIJAYZZgJCSvpYpHUek3o"
+MODEL_PATH = "stack_model_1.pkl"
+
+def download_model():
+    """Download the model file from Google Drive if not already present."""
+    if not os.path.exists(MODEL_PATH):
+        print("📥 Downloading model from Google Drive...")
+        response = requests.get(MODEL_URL, stream=True)
+        response.raise_for_status()
+        with open(MODEL_PATH, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+        print("✅ Model downloaded successfully!")
+
+# Run download before loading
+download_model()
+
+# =========================
+# Load model and encoders once
 # =========================
 stack_model_1 = joblib.load("stack_model_1.pkl")
 mood_encoder = joblib.load("mood_encoder.pkl")
@@ -39,7 +62,7 @@ numeric_cols = [
 
 
 # =========================
-# Safe encoder helper (optimized)
+# Safe encoder helper
 # =========================
 def safe_encode(encoder, value, default):
     try:
@@ -58,14 +81,14 @@ def preprocess_and_predict(form_data):
         # 1️⃣ Convert form input to DataFrame
         new_data = pd.DataFrame([form_data])
 
-        # 2️⃣ Compute time features (lightweight)
+        # 2️⃣ Compute time features
         new_data["Weekday"] = new_data["Weekday"].map(weekday_map).fillna(0).astype(int)
         new_data["Month_sin"] = np.sin(2 * np.pi * new_data["Month"] / 12)
         new_data["Month_cos"] = np.cos(2 * np.pi * new_data["Month"] / 12)
         new_data["Weekday_sin"] = np.sin(2 * np.pi * new_data["Weekday"] / 7)
         new_data["Weekday_cos"] = np.cos(2 * np.pi * new_data["Weekday"] / 7)
 
-        # 3️⃣ Encodings (safer + faster)
+        # 3️⃣ Encodings
         new_data["Mood_Swings"] = safe_encode(mood_encoder, new_data["Mood_Swings"].iloc[0], "medium")
         new_data["Days_Indoors"] = safe_encode(days_encoder, new_data["Days_Indoors"].iloc[0], "15-30 days")
 
@@ -73,10 +96,10 @@ def preprocess_and_predict(form_data):
         for col in ["Growing_Stress", "Changes_Habits", "Mental_Health_History", "Social_Weakness"]:
             new_data[col] = new_data[col].map(binary_map).fillna(0).astype(int)
 
-        # 5️⃣ Initialize model input (template copied once)
+        # 5️⃣ Initialize model input
         X_new = pd.DataFrame(np.zeros((1, len(final_columns))), columns=final_columns)
 
-        # 6️⃣ Insert numeric / cyclic values
+        # 6️⃣ Insert numeric values
         for col in numeric_cols:
             if col in X_new.columns:
                 X_new[col] = new_data[col].values
