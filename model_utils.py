@@ -106,10 +106,18 @@ def preprocess_and_predict(form_data):
 
         # 7️⃣ One-hot categorical encoding
         for field in categorical_fields:
-            val = str(new_data[field].iloc[0]).strip().lower().replace(" ", "_")
+            raw_val = new_data[field].iloc[0]
+
+    # Handle missing or None values safely
+            if pd.isna(raw_val) or raw_val is None:
+                val = "unknown"
+            else:
+                val = str(raw_val).strip().lower().replace(" ", "_")
+
             col_name = f"{field}_{val}"
             if col_name in X_new.columns:
                 X_new[col_name] = 1
+
 
         # 8️⃣ Scale + predict
         X_scaled = pd.DataFrame(scaler.transform(X_new), columns=X_new.columns)
@@ -128,3 +136,4 @@ def preprocess_and_predict(form_data):
         print("❌ Prediction Error:", e)
         print(traceback.format_exc())
         return None, 0.0
+
