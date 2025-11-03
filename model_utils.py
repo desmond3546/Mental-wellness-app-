@@ -15,14 +15,14 @@ MODEL_PATH = "stack_model_1.pkl"
 def download_model():
     """Download the model file from Google Drive if not already present."""
     if not os.path.exists(MODEL_PATH):
-        print("📥 Downloading model from Google Drive...")
+        print("Downloading model from Google Drive...")
         response = requests.get(MODEL_URL, stream=True)
         response.raise_for_status()
         with open(MODEL_PATH, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
-        print("✅ Model downloaded successfully!")
+        print("Model downloaded successfully!")
 
 # Run download before loading
 download_model()
@@ -76,7 +76,7 @@ def safe_encode(encoder, value, default):
 # =========================
 def preprocess_and_predict(form_data):
     try:
-        print("🔍 Incoming form data:", form_data)  # Debug log
+        print("Incoming form data:", form_data)  # Debug log
 
         # 1️⃣ Convert form input to DataFrame
         new_data = pd.DataFrame([form_data])
@@ -136,4 +136,3 @@ def preprocess_and_predict(form_data):
         print(traceback.format_exc())
         print("Failed input data:", form_data)  # Debug log for Render logs
         return None, 0.0
-
