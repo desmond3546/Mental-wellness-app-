@@ -20,6 +20,7 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        print("FORM DATA RECEIVED:", request.form.to_dict())
         form_data = {
             "Gender": request.form.get("gender").strip().lower(),
             "Country": request.form.get("country").strip().lower(),
@@ -477,5 +478,6 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))  # Render sets this automatically
     app.run(host="0.0.0.0", port=port)
+
 
 
