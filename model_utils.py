@@ -15,14 +15,14 @@ MODEL_PATH = "stack_model_1.pkl"
 def download_model():
     """Download the model file from Google Drive if not already present."""
     if not os.path.exists(MODEL_PATH):
-        print("Downloading model from Google Drive...")
+        print("📥 Downloading model from Google Drive...")
         response = requests.get(MODEL_URL, stream=True)
         response.raise_for_status()
         with open(MODEL_PATH, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
-        print("Model downloaded successfully!")
+        print("✅ Model downloaded successfully!")
 
 # Run download before loading
 download_model()
@@ -76,40 +76,45 @@ def safe_encode(encoder, value, default):
 # =========================
 def preprocess_and_predict(form_data):
     try:
-        print("Incoming form data:", form_data)  # Debug log
+        print("📩 Incoming form data:", form_data)
 
-        # 1️⃣ Convert form input to DataFrame
+        # Convert input to DataFrame
         new_data = pd.DataFrame([form_data])
 
-        # 2️⃣ Compute time features
+        # Compute time features
         new_data["Weekday"] = new_data["Weekday"].map(weekday_map).fillna(0).astype(int)
         new_data["Month_sin"] = np.sin(2 * np.pi * new_data["Month"] / 12)
         new_data["Month_cos"] = np.cos(2 * np.pi * new_data["Month"] / 12)
         new_data["Weekday_sin"] = np.sin(2 * np.pi * new_data["Weekday"] / 7)
         new_data["Weekday_cos"] = np.cos(2 * np.pi * new_data["Weekday"] / 7)
 
-        # 3️⃣ Encodings
-        new_data["Mood_Swings"] = safe_encode(mood_encoder, new_data["Mood_Swings"].iloc[0], "medium")
-        new_data["Days_Indoors"] = safe_encode(days_encoder, new_data["Days_Indoors"].iloc[0], "15-30 days")
+        # Safe encoding for ordinal fields
+        days_val = new_data["Days_Indoors"].iloc[0]
+        mood_val = new_data["Mood_Swings"].iloc[0]
 
-        # 4️⃣ Binary mappings
+        days_val = "15-30 days" if days_val is None or days_val == "" else days_val
+        mood_val = "medium" if mood_val is None or mood_val == "" else mood_val
+
+        new_data["Days_Indoors"] = safe_encode(days_encoder, days_val, "15-30 days")
+        new_data["Mood_Swings"] = safe_encode(mood_encoder, mood_val, "medium")
+
+        # Binary mappings
         for col in ["Growing_Stress", "Changes_Habits", "Mental_Health_History", "Social_Weakness"]:
             new_data[col] = new_data[col].map(binary_map).fillna(0).astype(int)
 
-        # 5️⃣ Initialize model input
+        # Initialize full feature DataFrame
         X_new = pd.DataFrame(np.zeros((1, len(final_columns))), columns=final_columns)
 
-        # 6️⃣ Insert numeric values
+        # Fill numeric columns
         for col in numeric_cols:
             if col in X_new.columns:
                 X_new[col] = new_data[col].values
 
-        # 7️⃣ One-hot categorical encoding (with None-safe handling)
+        # One-hot encode categoricals safely
         for field in categorical_fields:
             raw_val = new_data[field].iloc[0]
 
-            # Handle missing or None values safely
-            if pd.isna(raw_val) or raw_val is None:
+            if raw_val is None or pd.isna(raw_val):
                 val = "unknown"
             else:
                 val = str(raw_val).strip().lower().replace(" ", "_")
@@ -118,7 +123,7 @@ def preprocess_and_predict(form_data):
             if col_name in X_new.columns:
                 X_new[col_name] = 1
 
-        # 8️⃣ Scale + predict
+        # Scale + predict
         X_scaled = pd.DataFrame(scaler.transform(X_new), columns=X_new.columns)
 
         if hasattr(stack_model_1, "predict_proba"):
@@ -129,10 +134,11 @@ def preprocess_and_predict(form_data):
             prediction = int(stack_model_1.predict(X_scaled)[0])
             confidence = 0.5
 
+        print(f"✅ Prediction: {prediction}, Confidence: {confidence:.2f}")
         return prediction, confidence
 
     except Exception as e:
-        print("Prediction Error:", e)
+        print("❌ Prediction Error:", e)
         print(traceback.format_exc())
-        print("Failed input data:", form_data)  # Debug log for Render logs
+        print("🚨 Failed input data:", form_data)
         return None, 0.0
