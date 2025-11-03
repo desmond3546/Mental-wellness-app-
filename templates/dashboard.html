@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Wellness Dashboard</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e3fdfd, #ffe6fa);
+      font-family: "Poppins", sans-serif;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin-top: 3rem;
+    }
+    .dashboard-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      animation: fadeIn 1s ease;
+    }
+    @keyframes fadeIn {
+      from {opacity:0; transform: translateY(20px);}
+      to {opacity:1; transform: translateY(0);}
+    }
+    .heading {
+      text-align: center;
+      font-weight: 600;
+      color: #008080;
+      margin-bottom: 1rem;
+    }
+    .ai-card {
+      background: #f0fffa;
+      border-left: 6px solid #00a39d;
+      padding: 1rem;
+      border-radius: 12px;
+      font-style: italic;
+    }
+    .back-btn {
+      display: block;
+      width: fit-content;
+      margin: 2rem auto 0;
+      background: linear-gradient(90deg, #00a39d, #00d4c8);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: 0.3s;
+    }
+    .back-btn:hover {
+      background: linear-gradient(90deg, #00d4c8, #00a39d);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="dashboard-card">
+      <h2 class="heading">🌿 Your Wellness Dashboard</h2>
+      <p class="text-center text-muted mb-4">
+        Track how your moods and habits evolve over time.
+      </p>
+
+      <canvas id="moodChart" height="100"></canvas>
+
+      <div class="mt-4 text-center">
+        <h5>Average Mood Score: <span class="text-success">{{ avg_mood }}</span></h5>
+      </div>
+
+      <div class="ai-card mt-4">
+        💬 <strong>AI Companion:</strong> {{ ai_message }}
+      </div>
+
+      <a href="/" class="back-btn">💫 Return to Wellness</a>
+    </div>
+  </div>
+
+  <!-- Safe JSON block -->
+  <script id="moodDataJson" type="application/json">
+    {{ mood_data | tojson }}
+  </script>
+
+  <script>
+    const moodData = JSON.parse(document.getElementById("moodDataJson").textContent);
+    const ctx = document.getElementById("moodChart").getContext("2d");
+    const labels = moodData.map(d => d.day);
+    const values = moodData.map(d => d.mood);
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Mood Over Time",
+          data: values,
+          borderColor: "#00a39d",
+          backgroundColor: "rgba(0,163,157,0.1)",
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: "#00a39d"
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 10,
+            title: { display: true, text: "Mood Level" }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: "index", intersect: false }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+body {
+  padding-bottom: 40px;
+}
+
+h1, h2 {
+  color: #333;
+}
+
+.alert-info {
+  font-size: 1.1rem;
+}

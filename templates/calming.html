@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🌸 Mindful Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.0/lib/p5.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at center, #a8edea, #fed6e3);
+      transition: background 3s ease;
+    }
+
+    /* 🌿 Breathing Circle */
+    .breathe {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      width: 140px;
+      height: 140px;
+      background: radial-gradient(circle, #ffffff80, #00bfa580);
+      box-shadow: 0 0 40px rgba(0, 191, 165, 0.5);
+      animation: breathe 10s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.9; }
+      40% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+      60% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+    }
+
+    /* 🫁 Breathing Text */
+    .breathe-text {
+      position: absolute;
+      top: 67%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: 1.5rem;
+      color: #ffffff;
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      font-weight: 500;
+      letter-spacing: 1px;
+      transition: all 0.5s ease;
+    }
+
+    /* ✨ Affirmations */
+    .message {
+      position: absolute;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      color: #fff;
+      font-size: 1.2rem;
+      text-shadow: 0 0 15px rgba(0,0,0,0.2);
+      animation: fadeMessage 6s infinite alternate;
+    }
+
+    @keyframes fadeMessage {
+      from { opacity: 0.6; }
+      to { opacity: 1; }
+    }
+
+    /* 🌈 Back Button */
+    .back-btn {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 50px;
+      border: none;
+      backdrop-filter: blur(6px);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.4);
+      transform: scale(1.05);
+    }
+
+    /* ✨ Ambient particles */
+    #calmCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    /* 💬 Floating chat button */
+    .ai-companion-btn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: linear-gradient(135deg, #00bfa5, #007b83);
+      color: white;
+      padding: 12px 22px;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 500;
+      box-shadow: 0 8px 18px rgba(0, 123, 131, 0.35);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .ai-companion-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0,123,131,0.5);
+    }
+
+    /* 💬 Chat Popup */
+    .chat-popup {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 25px;
+      width: 320px;
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      overflow: hidden;
+      flex-direction: column;
+      z-index: 2000;
+    }
+    .chat-header {
+      background: linear-gradient(135deg, #00bfa5, #007b83);
+      color: white;
+      padding: 12px;
+      font-weight: 600;
+      text-align: center;
+    }
+    .chat-messages {
+      padding: 10px;
+      height: 260px;
+      overflow-y: auto;
+      font-size: 0.95rem;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #eee;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      outline: none;
+    }
+    .chat-input button {
+      background: #00bfa5;
+      color: white;
+      border: none;
+      padding: 0 16px;
+      border-radius: 0 0 15px 0;
+      cursor: pointer;
+    }
+    .user-msg { text-align: right; color: #007b83; margin: 6px 0; }
+    .ai-msg { text-align: left; color: #444; margin: 6px 0; }
+    .typing { font-style: italic; color: #aaa; margin: 6px 0; animation: blink 1.2s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <button class="back-btn" onclick="window.location.href='/'">← Back</button>
+
+  <div id="calmCanvas"></div>
+
+  <div class="breathe"></div>
+  <div class="breathe-text" id="breatheText">Inhale...</div>
+
+  <div class="message" id="affirmation">You are safe. You are calm. You are enough. 🌸</div>
+
+  <!-- 💬 Floating Chat Button -->
+  <div class="ai-companion-btn" id="chatToggle">💬 Talk to AI Companion</div>
+
+  <!-- 🧘 Chat Popup -->
+  <div class="chat-popup" id="chatPopup">
+    <div class="chat-header">AI Wellness Companion 🌿</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="ai-msg">Welcome to your Mindful Portal 💫 How are you feeling right now?</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // 🌸 Particle animation using p5.js
+    new p5((p) => {
+      let particles = [];
+      p.setup = function() {
+        const cnv = p.createCanvas(p.windowWidth, p.windowHeight);
+        cnv.parent("calmCanvas");
+        for (let i = 0; i < 100; i++) {
+          particles.push({
+            x: p.random(p.width),
+            y: p.random(p.height),
+            r: p.random(1, 3),
+            dx: p.random(-0.3, 0.3),
+            dy: p.random(-0.3, 0.3),
+            col: p.color(p.random(150,255), p.random(180,255), p.random(200,255), 180)
+          });
+        }
+      };
+      p.draw = function() {
+        p.noStroke();
+        p.fill(255, 40);
+        p.rect(0, 0, p.width, p.height);
+        for (let pt of particles) {
+          p.fill(pt.col);
+          p.circle(pt.x, pt.y, pt.r);
+          pt.x += pt.dx;
+          pt.y += pt.dy;
+          if (pt.x < 0 || pt.x > p.width) pt.dx *= -1;
+          if (pt.y < 0 || pt.y > p.height) pt.dy *= -1;
+        }
+      };
+    });
+
+    // 🫁 Breathing Cycle: Inhale -> Hold -> Exhale -> Hold
+    const phases = [
+      { text: "Inhale...", duration: 4000, color: "#a8edea" },
+      { text: "Hold...", duration: 2000, color: "#bde8e0" },
+      { text: "Exhale...", duration: 4000, color: "#fed6e3" },
+      { text: "Hold...", duration: 2000, color: "#f4cde2" }
+    ];
+    let currentPhase = 0;
+    const textEl = document.getElementById("breatheText");
+
+    function cycleBreathing() {
+      const { text, duration, color } = phases[currentPhase];
+      textEl.textContent = text;
+      document.body.style.background = `radial-gradient(circle at center, ${color}, #ffffff20)`;
+      currentPhase = (currentPhase + 1) % phases.length;
+      setTimeout(cycleBreathing, duration);
+    }
+    cycleBreathing();
+
+    // 🌿 Affirmations rotation
+    const affirmations = [
+      "You are safe. You are calm. You are enough. 🌸",
+      "Breathe in peace, breathe out stress 💫",
+      "Let go of the weight you can’t control 🌿",
+      "You are allowed to rest — your mind deserves it 🌙",
+      "Even storms make way for clear skies ☀️"
+    ];
+    let idx = 0;
+    setInterval(() => {
+      idx = (idx + 1) % affirmations.length;
+      document.getElementById("affirmation").textContent = affirmations[idx];
+    }, 7000);
+
+    // 💬 AI Companion Chat
+    const chatPopup = document.getElementById("chatPopup");
+    const chatToggle = document.getElementById("chatToggle");
+    function toggleChat() {
+      chatPopup.style.display = chatPopup.style.display === "flex" ? "none" : "flex";
+      chatPopup.style.flexDirection = "column";
+    }
+    chatToggle.addEventListener("click", (e) => {
+      e.stopPropagation(); toggleChat();
+    });
+    document.addEventListener("click", (e) => {
+      if (chatPopup.style.display === "flex" && !chatPopup.contains(e.target) && !chatToggle.contains(e.target)) {
+        chatPopup.style.display = "none";
+      }
+    });
+
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const messages = document.getElementById("chatMessages");
+      const userText = input.value.trim();
+      if (!userText) return;
+      messages.innerHTML += `<div class="user-msg">${userText}</div>`;
+      input.value = "";
+      const typing = document.createElement("div");
+      typing.classList.add("typing");
+      typing.textContent = "AI Companion is typing...";
+      messages.appendChild(typing);
+      messages.scrollTop = messages.scrollHeight;
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText })
+      });
+      const data = await res.json();
+      setTimeout(() => {
+        typing.remove();
+        messages.innerHTML += `<div class="ai-msg">${data.reply}</div>`;
+        messages.scrollTop = messages.scrollHeight;
+      }, 1000 + Math.random() * 600);
+    }
+  </script>
+</body>
+</html>

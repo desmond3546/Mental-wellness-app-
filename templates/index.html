@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mental Wellness Predictor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      position: relative;
+      min-height: 100vh;
+    }
+    .background {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #d6f6f3, #f3fff8, #d6f0ff);
+      background-size: 400% 400%;
+      animation: gradientFlow 12s ease infinite;
+      z-index: -1;
+    }
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .dashboard-btn {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: linear-gradient(135deg, #20b2aa, #48d1cc);
+      color: white; border: none;
+      border-radius: 12px; padding: 10px 22px;
+      font-weight: 600; transition: all 0.3s ease;
+      text-decoration: none; z-index: 10;
+    }
+    .dashboard-btn:hover { transform: scale(1.05); color: white; }
+    .form-card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 3rem;
+      margin: 2rem auto;
+      width: 95%;
+      max-width: 1400px;
+      animation: fadeIn 0.9s ease;
+      backdrop-filter: blur(4px);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .title { text-align:center; font-weight:700; color:#007b83; margin-bottom:0.5rem; }
+    .subtitle { text-align:center; color:#777; margin-bottom:1.5rem; }
+    label { font-weight:500; }
+    .predict-btn {
+      background:#009688; color:white; border:none;
+      border-radius:12px; padding:12px 24px;
+      font-weight:600; transition: all 0.3s ease;
+    }
+    .predict-btn:hover { background:#00bfa5; transform:scale(1.03); }
+    .bmi-display { color:#007b83; font-weight:500; margin-top:5px; }
+    #quotesCarousel { max-width: 800px; margin: 0 auto 1.5rem auto; }
+    #quotesCarousel p { color: #007b83; font-weight: 500; animation: fadeIn 1.5s ease; }
+
+    /* AI Companion Button */
+    .ai-companion-btn {
+      position: fixed; bottom: 25px; right: 25px;
+      background: linear-gradient(135deg, #00bfa5, #007b83);
+      color: white; padding: 12px 22px;
+      border-radius: 50px; font-weight: 500;
+      box-shadow: 0 8px 18px rgba(0, 123, 131, 0.35);
+      cursor: pointer; transition: all 0.3s ease;
+    }
+    .ai-companion-btn:hover { transform: translateY(-3px); }
+
+    .chat-popup {
+      display: none; position: fixed; bottom: 90px; right: 25px;
+      width: 320px; background: white; border-radius: 15px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      flex-direction: column; z-index: 2000;
+    }
+    .chat-header {
+      background: linear-gradient(135deg, #00bfa5, #007b83);
+      color: white; padding: 12px; font-weight: 600; text-align: center;
+    }
+    .chat-messages { padding: 10px; height: 260px; overflow-y: auto; font-size: 0.95rem; }
+    .chat-input { display: flex; border-top: 1px solid #eee; }
+    .chat-input input { flex: 1; border: none; padding: 10px; outline: none; }
+    .chat-input button { background: #00bfa5; color: white; border: none; padding: 0 16px; cursor: pointer; }
+    .user-msg { text-align: right; color: #007b83; margin: 6px 0; }
+    .ai-msg { text-align: left; color: #444; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+
+  <a href="/dashboard" class="dashboard-btn">🌿 Go to Wellness Dashboard</a>
+
+  <div class="form-card">
+    <h2 class="title">🧠 Mental Wellness Predictor</h2>
+    <p class="subtitle">Take a gentle moment for yourself — answer honestly to help us understand your mental wellness journey.</p>
+
+    <!-- Quotes Carousel -->
+    <div id="quotesCarousel" class="carousel slide text-center mt-4" data-bs-ride="carousel" data-bs-interval="5000">
+      <div class="carousel-inner">
+        <div class="carousel-item active"><p>“You are not your thoughts — you are the awareness behind them.”</p></div>
+        <div class="carousel-item"><p>“Peace begins the moment you choose to breathe instead of react.”</p></div>
+        <div class="carousel-item"><p>“Every storm runs out of rain. You will see the sun again.”</p></div>
+        <div class="carousel-item"><p>“Healing takes time, but you are moving forward — one breath at a time.”</p></div>
+        <div class="carousel-item"><p>“You are growing through what you are going through.”</p></div>
+      </div>
+    </div>
+
+    <form id="predictForm" action="/predict" method="POST" class="mt-4">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label>👤 What is your gender?</label>
+          <select class="form-select" name="gender" required>
+            <option value="">Select your gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other / Prefer not to say</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>🌍 Where are you currently living?</label>
+          <input type="text" class="form-control" name="country" placeholder="Enter your country" required>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>💼 What best describes your occupation or daily role?</label>
+          <input type="text" class="form-control" name="occupation" placeholder="e.g., Student, Engineer, Homemaker" required>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>📏 What is your height (in cm)?</label>
+          <input type="number" class="form-control" id="height" name="height" required>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>⚖️ What is your weight (in kg)?</label>
+          <input type="number" class="form-control" id="weight" name="weight" required>
+          <div class="bmi-display" id="bmiDisplay"></div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>👪 Does anyone in your family have a history of mental health challenges?</label>
+          <select class="form-select" name="family_history" required>
+            <option value="">Select an option</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>😓 Have you been feeling more stressed lately?</label>
+          <select class="form-select" name="growing_stress" required>
+            <option value="">Select an option</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Sometimes</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>🔄 Have you noticed any changes in your sleep, eating, or other habits recently?</label>
+          <select class="form-select" name="changes_habits" required>
+            <option value="">Select an option</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Maybe</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>💭 How often do you experience mood swings?</label>
+          <select class="form-select" name="mood_swings" required>
+            <option value="">Select frequency</option>
+            <option>Rarely</option>
+            <option>Sometimes</option>
+            <option>Often</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>🧘 How well do you cope with emotional challenges?</label>
+          <select class="form-select" name="coping_struggles" required>
+            <option value="">Select one</option>
+            <option>I find it hard to cope</option>
+            <option>I manage most of the time</option>
+            <option>I cope quite well</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>💡 Have you recently lost interest or joy in activities you used to enjoy?</label>
+          <select class="form-select" name="work_interest" required>
+            <option value="">Select one</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Sometimes</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>🏢 Do you feel comfortable discussing mental health at your workplace or school?</label>
+          <select class="form-select" name="mental_health_interview" required>
+            <option value="">Select one</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Unsure</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>❤️ Does your workplace or institution offer any mental wellness support or care options?</label>
+          <select class="form-select" name="care_options" required>
+            <option value="">Select one</option>
+            <option>Yes</option>
+            <option>No</option>
+            <option>Not sure</option>
+          </select>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <label>🏠 How often do you spend long periods indoors without going outside?</label>
+          <select class="form-select" name="days_indoors" required>
+            <option value="">Select frequency</option>
+            <option>Almost every day</option>
+            <option>1–2 weeks per month</option>
+            <option>3–4 weeks per month</option>
+            <option>Over a month</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <button id="predictBtn" type="submit" class="predict-btn">🔮 Analyze My Wellness</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Floating AI Chat -->
+  <div class="ai-companion-btn" onclick="toggleChat()">💬 Talk to AI Companion</div>
+  <div class="chat-popup" id="chatPopup">
+    <div class="chat-header">AI Wellness Companion 🌿</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="ai-msg">Hello! I’m here to listen and support you 💚</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()" />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function toggleChat() {
+      const popup = document.getElementById("chatPopup");
+      popup.style.display = popup.style.display === "flex" ? "none" : "flex";
+      popup.style.flexDirection = "column";
+    }
+    document.addEventListener("click", (e) => {
+      const chat = document.getElementById("chatPopup");
+      const btn = document.querySelector(".ai-companion-btn");
+      if (!chat.contains(e.target) && !btn.contains(e.target)) chat.style.display = "none";
+    });
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const messages = document.getElementById("chatMessages");
+      const userText = input.value.trim();
+      if (!userText) return;
+      messages.innerHTML += `<div class="user-msg">${userText}</div>`;
+      input.value = "";
+      const res = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userText })
+      });
+      const data = await res.json();
+      messages.innerHTML += `<div class="ai-msg">${data.reply}</div>`;
+      messages.scrollTop = messages.scrollHeight;
+    }
+    const height = document.getElementById("height");
+    const weight = document.getElementById("weight");
+    const bmiDisplay = document.getElementById("bmiDisplay");
+    function updateBMI() {
+      const h = parseFloat(height.value);
+      const w = parseFloat(weight.value);
+      if (h > 0 && w > 0) {
+        const bmi = (w / ((h / 100) ** 2)).toFixed(2);
+        bmiDisplay.innerText = `💪 Your BMI: ${bmi}`;
+      } else {
+        bmiDisplay.innerText = "";
+      }
+    }
+    height.addEventListener("input", updateBMI);
+    weight.addEventListener("input", updateBMI);
+  </script>
+</body>
+</html>

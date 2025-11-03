@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Predict - ML App{% endblock %}
+{% block content %}
+  <h2>Make a Prediction</h2>
+  <form method="post" action="{{ url_for('predict') }}">
+    <!-- Replace with your model's actual features -->
+    <div class="mb-3">
+      <label for="age" class="form-label">Age</label>
+      <input type="number" class="form-control" id="age" name="age" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="self_employed" class="form-label">Self Employed (yes/no)</label>
+      <input type="text" class="form-control" id="self_employed" name="self_employed">
+    </div>
+
+    <div class="mb-3">
+      <label for="work_interfere" class="form-label">Work Interference (often/sometimes/never)</label>
+      <input type="text" class="form-control" id="work_interfere" name="work_interfere">
+    </div>
+
+    <button type="submit" class="btn btn-success">Predict</button>
+  </form>
+{% endblock %}

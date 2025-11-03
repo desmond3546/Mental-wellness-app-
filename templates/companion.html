@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Wellness Companion 🌿</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-green-100 min-h-screen flex flex-col items-center justify-center">
+  <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl p-6 flex flex-col h-[80vh]">
+    <h1 class="text-2xl font-semibold text-center text-green-700 mb-3">🧘 Your Wellness Companion</h1>
+    <p class="text-gray-500 text-center mb-4">Let's talk — share what’s on your mind.</p>
+
+    <div id="chat-box" class="flex-1 overflow-y-auto space-y-3 p-3 bg-green-50 rounded-xl">
+      <div class="p-3 bg-green-200 text-gray-800 rounded-xl w-fit">Hello 🌸! How are you feeling today?</div>
+    </div>
+
+    <div class="mt-4 flex">
+      <input id="user-input" type="text" placeholder="Type your thoughts here..."
+        class="flex-1 border border-green-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-green-400">
+      <button onclick="sendMessage()"
+        class="ml-3 bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-xl transition">Send</button>
+    </div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("user-input");
+      const message = input.value.trim();
+      if (!message) return;
+
+      const chatBox = document.getElementById("chat-box");
+      const userBubble = document.createElement("div");
+      userBubble.className = "p-3 bg-blue-200 text-gray-800 rounded-xl w-fit self-end ml-auto";
+      userBubble.textContent = message;
+      chatBox.appendChild(userBubble);
+
+      input.value = "";
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await axios.post("/chat", { message });
+        const reply = response.data.reply;
+
+        const botBubble = document.createElement("div");
+        botBubble.className = "p-3 bg-green-200 text-gray-800 rounded-xl w-fit";
+        botBubble.textContent = reply;
+        chatBox.appendChild(botBubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>
