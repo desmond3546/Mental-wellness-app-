@@ -60,7 +60,6 @@ numeric_cols = [
     "Weekday_sin", "Weekday_cos"
 ]
 
-
 # =========================
 # Safe encoder helper
 # =========================
@@ -72,12 +71,13 @@ def safe_encode(encoder, value, default):
     except Exception:
         return encoder.transform([[default]])[0]
 
-
 # =========================
 # Main prediction function
 # =========================
 def preprocess_and_predict(form_data):
     try:
+        print("🔍 Incoming form data:", form_data)  # Debug log
+
         # 1️⃣ Convert form input to DataFrame
         new_data = pd.DataFrame([form_data])
 
@@ -104,11 +104,11 @@ def preprocess_and_predict(form_data):
             if col in X_new.columns:
                 X_new[col] = new_data[col].values
 
-        # 7️⃣ One-hot categorical encoding
+        # 7️⃣ One-hot categorical encoding (with None-safe handling)
         for field in categorical_fields:
             raw_val = new_data[field].iloc[0]
 
-    # Handle missing or None values safely
+            # Handle missing or None values safely
             if pd.isna(raw_val) or raw_val is None:
                 val = "unknown"
             else:
@@ -117,7 +117,6 @@ def preprocess_and_predict(form_data):
             col_name = f"{field}_{val}"
             if col_name in X_new.columns:
                 X_new[col_name] = 1
-
 
         # 8️⃣ Scale + predict
         X_scaled = pd.DataFrame(scaler.transform(X_new), columns=X_new.columns)
@@ -135,5 +134,5 @@ def preprocess_and_predict(form_data):
     except Exception as e:
         print("❌ Prediction Error:", e)
         print(traceback.format_exc())
+        print("⚠️ Failed input data:", form_data)  # Debug log for Render logs
         return None, 0.0
-
