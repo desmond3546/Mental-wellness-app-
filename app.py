@@ -20,23 +20,29 @@ def home():
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
+        form_dict = request.form.to_dict()
         print("FORM DATA RECEIVED:", request.form.to_dict())
+        def safe_get(key, default="unknown"):
+            val = form_dict.get(key)
+            if val is None or str(val).strip() == "":
+                return default
+            return str(val).strip()
         form_data = {
-            "Gender": request.form.get("gender").strip().lower(),
-            "Country": request.form.get("country").strip().lower(),
-            "Occupation": request.form.get("occupation").strip().lower(),
-            "self_employed": request.form.get("self_employed").strip().lower(),
-            "family_history": request.form.get("family_history").strip().lower(),
-            "Days_Indoors": request.form.get("days_indoors").strip(),
-            "Growing_Stress": request.form.get("growing_stress").strip().lower(),
-            "Changes_Habits": request.form.get("changes_habits").strip().lower(),
-            "Mental_Health_History": request.form.get("family_history").strip().lower(),
-            "Mood_Swings": request.form.get("mood_swings").strip().lower(),
-            "Coping_Struggles": request.form.get("coping_struggles").strip().lower(),
-            "Work_Interest": request.form.get("work_interest").strip().lower(),
-            "Social_Weakness": request.form.get("coping_struggles").strip().lower(),
-            "mental_health_interview": request.form.get("mental_health_interview").strip().lower(),
-            "care_options": request.form.get("care_options").strip().lower(),
+            "Gender": safe_get("gender"),
+            "Country": safe_get("country"),
+            "Occupation": safe_get("occupation"),
+            "self_employed": "no",  # not in form
+            "family_history": safe_get("family_history", "no"),
+            "Days_Indoors": safe_get("days_indoors", "15-30 days"),
+            "Growing_Stress": safe_get("growing_stress", "no"),
+            "Changes_Habits": safe_get("changes_habits", "no"),
+            "Mental_Health_History": "no",  # not in form
+            "Mood_Swings": safe_get("mood_swings", "medium"),
+            "Coping_Struggles": safe_get("coping_struggles", "no"),
+            "Work_Interest": safe_get("work_interest", "no"),
+            "Social_Weakness": "no",  # not in form
+            "mental_health_interview": safe_get("mental_health_interview", "no"),
+            "care_options": safe_get("care_options", "no"),
             "Year": 2014,
             "Month": 8,
             "Weekday": "wednesday",
@@ -478,6 +484,7 @@ if __name__ == "__main__":
     import os
     port = int(os.environ.get("PORT", 5000))  # Render sets this automatically
     app.run(host="0.0.0.0", port=port)
+
 
 
 
