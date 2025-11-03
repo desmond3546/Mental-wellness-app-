@@ -5,3 +5,6 @@ scikit-learn
 joblib
 gunicorn
 requests
+lightgbm
+catboost
+
