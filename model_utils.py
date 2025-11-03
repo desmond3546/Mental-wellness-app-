@@ -132,7 +132,8 @@ def preprocess_and_predict(form_data):
         return prediction, confidence
 
     except Exception as e:
-        print("❌ Prediction Error:", e)
+        print("Prediction Error:", e)
         print(traceback.format_exc())
-        print("⚠️ Failed input data:", form_data)  # Debug log for Render logs
+        print("Failed input data:", form_data)  # Debug log for Render logs
         return None, 0.0
+
